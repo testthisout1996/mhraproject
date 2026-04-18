@@ -379,42 +379,11 @@ export default function UpdateTab() {
     setProcessed(0);
     abortRef.current = false;
 
-    // Within-run cache: when a search confirms an existing URL as correct for a
-    // given medication, we record it here so that subsequent items sharing the
-    // SAME existing URL (e.g. multiple strengths pointing to one multi-strength
-    // PIL) are marked "unchanged" without needing a redundant search.
-    // Key: normalized existingFullUrl  Value: the confirmed resolved result
-    type ResolvedResult = { documentUrl: string; productName: string; plNumber: string[]; title: string };
-    const confirmedUrlCache = new Map<string, ResolvedResult>();
-
     for (let i = 0; i < initialItems.length; i++) {
       if (abortRef.current) break;
 
       const item = initialItems[i];
 
-      // Fast path: if this item's existing URL was already confirmed earlier in
-      // this run (e.g. the same multi-strength PIL was already validated for
-      // another strength), reuse the cached result immediately.
-      const normalizedExisting = normalizePilUrl(item.existingFullUrl);
-      if (normalizedExisting && confirmedUrlCache.has(normalizedExisting)) {
-        const cached = confirmedUrlCache.get(normalizedExisting)!;
-        setItems(prev =>
-          prev.map((cur, idx) =>
-            idx === i
-              ? { ...cur, status: "unchanged", documentUrl: cached.documentUrl,
-                  productName: cached.productName, plNumber: cached.plNumber,
-                  title: cached.title }
-              : cur
-          )
-        );
-        setProcessed(i + 1);
-        if (i < initialItems.length - 1) await new Promise(r => setTimeout(r, 50));
-        continue;
-      }
-
-      // Step 1: Always search MHRA first — this ensures the selection algorithm
-      // always runs and the correct (generic vs branded) PIL is chosen, even if
-      // the previously stored URL is still accessible.
       setItems(prev =>
         prev.map((cur, idx) => (idx === i ? { ...cur, status: "searching" } : cur))
       );
@@ -424,18 +393,6 @@ export default function UpdateTab() {
 
         if (best) {
           const isUnchanged = matchesExistingPilDocument(best.documentUrl, item);
-
-          // If the search confirmed the existing URL, cache it so future items
-          // sharing this URL can skip their search entirely.
-          if (isUnchanged && normalizedExisting) {
-            confirmedUrlCache.set(normalizedExisting, {
-              documentUrl: best.documentUrl,
-              productName: best.productName,
-              plNumber: best.plNumber,
-              title: best.title,
-            });
-          }
-
           setItems(prev =>
             prev.map((cur, idx) =>
               idx === i
@@ -446,24 +403,6 @@ export default function UpdateTab() {
                     productName: best.productName,
                     plNumber: best.plNumber,
                     title: best.title,
-                  }
-                : cur
-            )
-          );
-        } else if (item.existingFullUrl) {
-          // Step 2: MHRA search returned nothing — fall back to checking if the
-          // existing URL still works rather than leaving the user with nothing.
-          setItems(prev =>
-            prev.map((cur, idx) => (idx === i ? { ...cur, status: "checking" } : cur))
-          );
-          const accessible = await checkUrlAccessible(item.existingFullUrl);
-          setItems(prev =>
-            prev.map((cur, idx) =>
-              idx === i
-                ? {
-                    ...cur,
-                    status: accessible ? "unchanged" : "not_found",
-                    documentUrl: accessible ? item.existingFullUrl : undefined,
                   }
                 : cur
             )
