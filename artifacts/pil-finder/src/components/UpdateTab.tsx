@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Upload, ClipboardPaste, Play, Download, CheckCircle, XCircle, Loader2, FileText, RefreshCw, Copy, Check, ArrowUp, ChevronUp, ChevronDown } from "lucide-react";
+import { Upload, ClipboardPaste, Play, Download, CheckCircle, XCircle, Loader2, FileText, RefreshCw, Copy, Check, ArrowUp, ChevronUp, ChevronDown, PauseCircle, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -337,6 +337,8 @@ export default function UpdateTab() {
   const [jsOriginalText, setJsOriginalText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef(false);
+  const isPausedRef = useRef(false);
+  const [isPaused, setIsPaused] = useState(false);
   const controlsRef = useRef<HTMLDivElement>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [notFoundNavIdx, setNotFoundNavIdx] = useState(0);
@@ -398,8 +400,20 @@ export default function UpdateTab() {
     setProcessed(0);
     setNotFoundNavIdx(0);
     abortRef.current = false;
+    isPausedRef.current = false;
+    setIsPaused(false);
+
+    const waitIfPaused = () =>
+      new Promise<void>(resolve => {
+        const check = () => {
+          if (!isPausedRef.current) resolve();
+          else setTimeout(check, 100);
+        };
+        check();
+      });
 
     for (let i = 0; i < initialItems.length; i++) {
+      await waitIfPaused();
       if (abortRef.current) break;
 
       const item = initialItems[i];
@@ -450,6 +464,18 @@ export default function UpdateTab() {
 
   const handleStop = () => {
     abortRef.current = true;
+    isPausedRef.current = false;
+    setIsPaused(false);
+  };
+
+  const handlePause = () => {
+    isPausedRef.current = true;
+    setIsPaused(true);
+  };
+
+  const handleResume = () => {
+    isPausedRef.current = false;
+    setIsPaused(false);
   };
 
   const handleExportTxt = () => {
@@ -608,15 +634,38 @@ export default function UpdateTab() {
             Check &amp; Update Links
           </Button>
         ) : (
-          <Button
-            onClick={handleStop}
-            variant="outline"
-            className="gap-2"
-            data-testid="button-stop-update"
-          >
-            <XCircle className="w-4 h-4" />
-            Stop
-          </Button>
+          <>
+            <Button
+              onClick={handleStop}
+              variant="outline"
+              className="gap-2"
+              data-testid="button-stop-update"
+            >
+              <XCircle className="w-4 h-4" />
+              Stop
+            </Button>
+            {!isPaused ? (
+              <Button
+                onClick={handlePause}
+                variant="outline"
+                className="gap-2"
+                data-testid="button-pause-update"
+              >
+                <PauseCircle className="w-4 h-4" />
+                Pause
+              </Button>
+            ) : (
+              <Button
+                onClick={handleResume}
+                variant="outline"
+                className="gap-2 border-primary/40 text-primary"
+                data-testid="button-resume-update"
+              >
+                <PlayCircle className="w-4 h-4" />
+                Resume
+              </Button>
+            )}
+          </>
         )}
 
         {isDone && (
@@ -659,46 +708,45 @@ export default function UpdateTab() {
               <Download className="w-4 h-4" />
               Export .json
             </Button>
+          </>
+        )}
 
-            {notFoundIndices.length > 0 && (
-              <>
-                <div className="w-px h-6 bg-border mx-1" />
-                <span className="text-xs text-destructive font-medium">
-                  {notFoundIndices.length} not found:
-                </span>
-                <Button
-                  onClick={() => navigateToNotFound(0)}
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/5"
-                  disabled={notFoundIndices.length === 0}
-                >
-                  <ChevronUp className="w-3.5 h-3.5" />
-                  First
-                </Button>
-                <Button
-                  onClick={() => navigateToNotFound(hasPrevNotFound ? notFoundNavIdx - 1 : 0)}
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/5"
-                  disabled={!hasPrevNotFound}
-                >
-                  ↑ Prev
-                </Button>
-                <Button
-                  onClick={() => navigateToNotFound(hasNextNotFound ? notFoundNavIdx + 1 : notFoundNavIdx)}
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/5"
-                  disabled={!hasNextNotFound}
-                >
-                  Next ↓
-                </Button>
-                <span className="text-xs text-muted-foreground">
-                  {notFoundNavIdx + 1} / {notFoundIndices.length}
-                </span>
-              </>
-            )}
+        {(isRunning || isDone) && notFoundIndices.length > 0 && (
+          <>
+            <div className="w-px h-6 bg-border mx-1" />
+            <span className="text-xs text-destructive font-medium">
+              {notFoundIndices.length} not found:
+            </span>
+            <Button
+              onClick={() => navigateToNotFound(0)}
+              variant="outline"
+              size="sm"
+              className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/5"
+            >
+              <ChevronUp className="w-3.5 h-3.5" />
+              First
+            </Button>
+            <Button
+              onClick={() => navigateToNotFound(hasPrevNotFound ? notFoundNavIdx - 1 : 0)}
+              variant="outline"
+              size="sm"
+              className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/5"
+              disabled={!hasPrevNotFound}
+            >
+              ↑ Prev
+            </Button>
+            <Button
+              onClick={() => navigateToNotFound(hasNextNotFound ? notFoundNavIdx + 1 : notFoundNavIdx)}
+              variant="outline"
+              size="sm"
+              className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/5"
+              disabled={!hasNextNotFound}
+            >
+              Next ↓
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              {notFoundNavIdx + 1} / {notFoundIndices.length}
+            </span>
           </>
         )}
       </div>
@@ -709,10 +757,17 @@ export default function UpdateTab() {
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground font-medium">
                 {isRunning ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                    Checking {processed + 1} of {total}...
-                  </span>
+                  isPaused ? (
+                    <span className="flex items-center gap-2">
+                      <PauseCircle className="w-4 h-4 text-amber-500" />
+                      Paused at {processed + 1} of {total}
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                      Checking {processed + 1} of {total}...
+                    </span>
+                  )
                 ) : (
                   "Complete"
                 )}
@@ -890,20 +945,31 @@ export default function UpdateTab() {
                   <XCircle className="w-3.5 h-3.5" />
                   Stop
                 </Button>
-                <Button
-                  onClick={() => void handleStart()}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 w-full justify-start"
-                  disabled={isRunning}
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  Re-run
-                </Button>
+                {!isPaused ? (
+                  <Button
+                    onClick={handlePause}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 w-full justify-start"
+                  >
+                    <PauseCircle className="w-3.5 h-3.5" />
+                    Pause
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleResume}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 w-full justify-start border-primary/40 text-primary"
+                  >
+                    <PlayCircle className="w-3.5 h-3.5" />
+                    Resume
+                  </Button>
+                )}
               </>
             )}
 
-            {isDone && notFoundIndices.length > 0 && (
+            {(isRunning || isDone) && notFoundIndices.length > 0 && (
               <>
                 <div className="text-xs text-destructive font-semibold px-1 pb-1 border-b border-border mb-1">
                   {notFoundIndices.length} not found
