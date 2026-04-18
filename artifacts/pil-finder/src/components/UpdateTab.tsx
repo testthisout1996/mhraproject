@@ -384,28 +384,9 @@ export default function UpdateTab() {
 
       const item = initialItems[i];
 
-      // Step 1: If the item has an existing URL, check if it's still valid
-      if (item.existingFullUrl) {
-        setItems(prev =>
-          prev.map((cur, idx) => (idx === i ? { ...cur, status: "checking" } : cur))
-        );
-
-        const accessible = await checkUrlAccessible(item.existingFullUrl);
-        if (accessible) {
-          setItems(prev =>
-            prev.map((cur, idx) =>
-              idx === i
-                ? { ...cur, status: "unchanged", documentUrl: item.existingFullUrl }
-                : cur
-            )
-          );
-          setProcessed(i + 1);
-          if (i < initialItems.length - 1) await new Promise(r => setTimeout(r, 50));
-          continue;
-        }
-      }
-
-      // Step 2: URL is broken or not present — search MHRA for a new one
+      // Step 1: Always search MHRA first — this ensures the selection algorithm
+      // always runs and the correct (generic vs branded) PIL is chosen, even if
+      // the previously stored URL is still accessible.
       setItems(prev =>
         prev.map((cur, idx) => (idx === i ? { ...cur, status: "searching" } : cur))
       );
@@ -430,7 +411,11 @@ export default function UpdateTab() {
             )
           );
         } else if (item.existingFullUrl) {
-          // MHRA search returned nothing — check if existing URL still works
+          // Step 2: MHRA search returned nothing — fall back to checking if the
+          // existing URL still works rather than leaving the user with nothing.
+          setItems(prev =>
+            prev.map((cur, idx) => (idx === i ? { ...cur, status: "checking" } : cur))
+          );
           const accessible = await checkUrlAccessible(item.existingFullUrl);
           setItems(prev =>
             prev.map((cur, idx) =>
