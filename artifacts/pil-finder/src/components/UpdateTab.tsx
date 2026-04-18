@@ -294,7 +294,12 @@ async function searchForPil(
   }
 
   const best = pickBestResult(combined, brand, searchTerm);
-  return { best, all: combined };
+  if (best) return { best, all: combined };
+
+  // Brand-specific PIL not found — fall back to a generic PIL for the same drug.
+  const genericResults = await fetchResults(searchTerm, 10);
+  const genericBest = pickBestResult(genericResults, "GENERIC", searchTerm);
+  return { best: genericBest, all: genericResults };
 }
 
 function CopyButton({ text, label }: { text: string; label?: string }) {
