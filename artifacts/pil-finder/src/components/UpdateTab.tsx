@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from "react";
-import { Upload, ClipboardPaste, Play, Download, CheckCircle, XCircle, Loader2, FileText, RefreshCw, Copy, Check } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Upload, ClipboardPaste, Play, Download, CheckCircle, XCircle, Loader2, FileText, RefreshCw, Copy, Check, ArrowUp, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -337,6 +337,20 @@ export default function UpdateTab() {
   const [jsOriginalText, setJsOriginalText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef(false);
+  const controlsRef = useRef<HTMLDivElement>(null);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const [notFoundNavIdx, setNotFoundNavIdx] = useState(0);
+
+  useEffect(() => {
+    const el = controlsRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setControlsVisible(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const handleFileUpload = useCallback((file: File) => {
     const reader = new FileReader();
@@ -382,6 +396,7 @@ export default function UpdateTab() {
     setItems(initialItems);
     setIsRunning(true);
     setProcessed(0);
+    setNotFoundNavIdx(0);
     abortRef.current = false;
 
     for (let i = 0; i < initialItems.length; i++) {
@@ -482,6 +497,25 @@ export default function UpdateTab() {
 
   const updatedJs = isDone && inputFormat === "js" ? reconstructJsOutput(jsOriginalText, items) : "";
 
+  // Indices (row numbers) of not-found/error items for navigation
+  const notFoundIndices = items
+    .map((item, idx) => (item.status === "not_found" || item.status === "error") ? idx : -1)
+    .filter(idx => idx !== -1);
+
+  const navigateToNotFound = (navIdx: number) => {
+    const rowIdx = notFoundIndices[navIdx];
+    if (rowIdx === undefined) return;
+    document.getElementById(`med-row-${rowIdx}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setNotFoundNavIdx(navIdx);
+  };
+
+  const hasPrevNotFound = notFoundNavIdx > 0;
+  const hasNextNotFound = notFoundNavIdx < notFoundIndices.length - 1;
+
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
+  const showFloating = !controlsVisible && (isRunning || isDone);
+
   return (
     <div className="space-y-6">
       <div>
@@ -562,7 +596,7 @@ export default function UpdateTab() {
         </Card>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div ref={controlsRef} className="flex flex-wrap items-center gap-3">
         {!isRunning ? (
           <Button
             onClick={() => void handleStart()}
@@ -625,6 +659,46 @@ export default function UpdateTab() {
               <Download className="w-4 h-4" />
               Export .json
             </Button>
+
+            {notFoundIndices.length > 0 && (
+              <>
+                <div className="w-px h-6 bg-border mx-1" />
+                <span className="text-xs text-destructive font-medium">
+                  {notFoundIndices.length} not found:
+                </span>
+                <Button
+                  onClick={() => navigateToNotFound(0)}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/5"
+                  disabled={notFoundIndices.length === 0}
+                >
+                  <ChevronUp className="w-3.5 h-3.5" />
+                  First
+                </Button>
+                <Button
+                  onClick={() => navigateToNotFound(hasPrevNotFound ? notFoundNavIdx - 1 : 0)}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/5"
+                  disabled={!hasPrevNotFound}
+                >
+                  ↑ Prev
+                </Button>
+                <Button
+                  onClick={() => navigateToNotFound(hasNextNotFound ? notFoundNavIdx + 1 : notFoundNavIdx)}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/5"
+                  disabled={!hasNextNotFound}
+                >
+                  Next ↓
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  {notFoundNavIdx + 1} / {notFoundIndices.length}
+                </span>
+              </>
+            )}
           </>
         )}
       </div>
@@ -705,10 +779,13 @@ export default function UpdateTab() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {items.map((item, idx) => (
+                  {items.map((item, idx) => {
+                    const isNotFound = item.status === "not_found" || item.status === "error";
+                    return (
                     <tr
                       key={item.id}
-                      className="hover:bg-muted/20 transition-colors"
+                      id={`med-row-${idx}`}
+                      className={`transition-colors ${isNotFound ? "bg-red-50 hover:bg-red-100" : "hover:bg-muted/20"}`}
                       data-testid={`row-medication-${idx}`}
                     >
                       <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
@@ -790,10 +867,82 @@ export default function UpdateTab() {
                         ) : null}
                       </td>
                     </tr>
-                  ))}
+                  );
+                  })}
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showFloating && (
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 items-end">
+          <div className="bg-background border border-border rounded-xl shadow-lg p-3 flex flex-col gap-2 min-w-[160px]">
+            {isRunning && (
+              <>
+                <Button
+                  onClick={handleStop}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 w-full justify-start border-destructive/40 text-destructive hover:bg-destructive/5"
+                >
+                  <XCircle className="w-3.5 h-3.5" />
+                  Stop
+                </Button>
+                <Button
+                  onClick={() => void handleStart()}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 w-full justify-start"
+                  disabled={isRunning}
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Re-run
+                </Button>
+              </>
+            )}
+
+            {isDone && notFoundIndices.length > 0 && (
+              <>
+                <div className="text-xs text-destructive font-semibold px-1 pb-1 border-b border-border mb-1">
+                  {notFoundIndices.length} not found
+                </div>
+                <Button
+                  onClick={() => navigateToNotFound(hasPrevNotFound ? notFoundNavIdx - 1 : 0)}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 w-full justify-start border-destructive/30 text-destructive hover:bg-destructive/5"
+                  disabled={!hasPrevNotFound}
+                >
+                  <ChevronUp className="w-3.5 h-3.5" />
+                  Prev not found
+                </Button>
+                <Button
+                  onClick={() => navigateToNotFound(hasNextNotFound ? notFoundNavIdx + 1 : notFoundNavIdx)}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 w-full justify-start border-destructive/30 text-destructive hover:bg-destructive/5"
+                  disabled={!hasNextNotFound}
+                >
+                  <ChevronDown className="w-3.5 h-3.5" />
+                  Next not found
+                </Button>
+                <div className="text-xs text-center text-muted-foreground">
+                  {notFoundNavIdx + 1} / {notFoundIndices.length}
+                </div>
+              </>
+            )}
+
+            <Button
+              onClick={scrollToTop}
+              variant="outline"
+              size="sm"
+              className="gap-2 w-full justify-start"
+            >
+              <ArrowUp className="w-3.5 h-3.5" />
+              Back to top
+            </Button>
           </div>
         </div>
       )}
