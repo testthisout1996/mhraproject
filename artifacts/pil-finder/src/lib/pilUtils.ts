@@ -218,24 +218,31 @@ export function pickBestResult(
     return scored[0].result;
 
   } else {
-    // For branded: brand must be present in product name (brand IS the identifier)
+    // For branded: BOTH the brand AND the drug name must appear in the product name.
+    // Requiring the drug name is a hard filter — it prevents returning an entirely
+    // different drug that happens to share the brand name (e.g. "Imatinib Accord"
+    // when searching for "Levothyroxine [ACCORD]").
     const withBrand = results.filter(r => brandWordsMatch(brand, r.productName));
     if (withBrand.length === 0) return undefined;
 
+    const withDrugAndBrand = drugFirstWord
+      ? withBrand.filter(r => {
+          const productWords = splitWords(r.productName);
+          return productWords.some(
+            pw => pw === drugFirstWord || pw.startsWith(drugFirstWord) || drugFirstWord.startsWith(pw)
+          );
+        })
+      : withBrand;
+    if (withDrugAndBrand.length === 0) return undefined;
+
     // All numbers from search term must appear in product name
     const withNumbers = searchNumbers.length > 0
-      ? withBrand.filter(r => allNumbersMatchProduct(searchNumbers, r.productName))
-      : withBrand;
+      ? withDrugAndBrand.filter(r => allNumbersMatchProduct(searchNumbers, r.productName))
+      : withDrugAndBrand;
     if (withNumbers.length === 0) return undefined;
 
     // Prefer results with matching formulation (soft: fall back if none match)
     const candidates = applyFormulationFilter(withNumbers);
-
-    // Among candidates, prefer one that also contains the drug name
-    const withDrug = drugFirstWord
-      ? candidates.find(r => normalizeText(r.productName).includes(drugFirstWord))
-      : undefined;
-    if (withDrug) return withDrug;
 
     return candidates[0];
   }
@@ -243,8 +250,9 @@ export function pickBestResult(
 
 export function buildSearchQuery(searchTerm: string, brand: string): string {
   if (brand === "GENERIC") return searchTerm;
-  const withoutFirstWord = searchTerm.replace(/^[^\s]+/, "").trim();
-  return (`${brand} ${withoutFirstWord}`).trim() || searchTerm;
+  // Include the full drug name AND the brand so Azure Search finds the right drug,
+  // not just any product bearing that brand name.
+  return `${searchTerm} ${brand}`;
 }
 
 export function parseNameAndBrand(raw: string): { searchTerm: string; brand: string } {
