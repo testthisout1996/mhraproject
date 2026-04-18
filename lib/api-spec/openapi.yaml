@@ -1,0 +1,147 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: mhra
+    description: MHRA PIL search operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /mhra/search:
+    get:
+      operationId: searchMhraPil
+      tags: [mhra]
+      summary: Search MHRA for Patient Information Leaflets
+      description: Searches the MHRA products database for Patient Information Leaflets filtered by UK territory
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search query (medication name)
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          description: Page number
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 50
+          description: Results per page
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MhraSearchResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: MHRA API error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    MhraDocument:
+      type: object
+      properties:
+        title:
+          type: string
+        productName:
+          type: string
+        plNumber:
+          type: array
+          items:
+            type: string
+        substanceName:
+          type: array
+          items:
+            type: string
+        docType:
+          type: string
+        territory:
+          type: string
+          nullable: true
+        documentUrl:
+          type: string
+        fileName:
+          type: string
+        fileSize:
+          type: integer
+        created:
+          type: string
+      required:
+        - title
+        - productName
+        - documentUrl
+        - docType
+    MhraSearchResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/MhraDocument"
+        totalCount:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        query:
+          type: string
+      required:
+        - results
+        - totalCount
+        - page
+        - pageSize
+        - query
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message

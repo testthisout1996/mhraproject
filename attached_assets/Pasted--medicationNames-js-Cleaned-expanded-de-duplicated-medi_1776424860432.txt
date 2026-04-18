@@ -1,0 +1,168 @@
+// medicationNames.js
+// Cleaned, expanded, de-duplicated medication list
+
+// Define EndPoint URL
+const EndPoint = 'https://cors-proxy--perplexity1990.replit.app/api/proxy?url=';
+
+const pdfFiles = {
+  med1: {
+    name: 'Aspirin 75mg Dispersible Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/9f2766917689197fd8e3245a2e3c10fd3169a3e2'
+  },
+  med2: {
+    name: 'Bisoprolol 1.25mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/99c8d5b7749945f011f8fec189cc6fe59859651b'
+  },
+  med3: {
+    name: 'Bisoprolol 2.5mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/99c8d5b7749945f011f8fec189cc6fe59859651b'
+  },
+  med4: {
+    name: 'Bisoprolol 3.75mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/99c8d5b7749945f011f8fec189cc6fe59859651b'
+  },
+  med5: {
+    name: 'Bisoprolol 5mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/99c8d5b7749945f011f8fec189cc6fe59859651b'
+  },
+  med6: {
+    name: 'Bisoprolol 7.5mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/99c8d5b7749945f011f8fec189cc6fe59859651b'
+  },
+  med7: {
+    name: 'Bisoprolol 10mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/99c8d5b7749945f011f8fec189cc6fe59859651b'
+  },
+  med8: {
+    name: 'Amlodipine 5mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/37653909b05d122cdb204ada60ab418222e47d3c'
+  },
+  med9: {
+    name: 'Amlodipine 10mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/37653909b05d122cdb204ada60ab418222e47d3c'
+  },
+  med10: {
+    name: 'Levothyroxine 25mcg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/e95132aeb959e08fe8ff8f3063e287df8123f72e'
+  },
+  med11: {
+    name: 'Levothyroxine 50mcg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/e95132aeb959e08fe8ff8f3063e287df8123f72e'
+  },
+  med12: {
+    name: 'Levothyroxine 100mcg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/e95132aeb959e08fe8ff8f3063e287df8123f72e'
+  },
+  med13: {
+    name: 'Dexamethasone 500mcg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/3f0f12506d358c6831e55739801d2a21035faf2f'
+  },
+  med14: {
+    name: 'Dexamethasone 2mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/2b4b735baae7c72042a172f1246fcd7d5e2369d8'
+  },
+  med15: {
+    name: 'Senna 7.5mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/fad2529a494cf0f2f7681a151678bf78388eb2cd'
+  },
+  med16: {
+    name: 'Colchicine 500mcg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/ec3fe384a327bbcbbb6885517482815bf14215f5'
+  },
+  med17: {
+    name: 'Cyclizine Hydrochloride 50mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/42f5ab75553c19ca3eab6582e1345da9df5796f5'
+  },
+  med18: {
+    name: 'Atorvastatin 10mg Film-Coated Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/81aa3a0dc6e81da921eceb59ae4dcad510e97116'
+  },
+  med19: {
+    name: 'Atorvastatin 20mg Film-Coated Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/81aa3a0dc6e81da921eceb59ae4dcad510e97116'
+  },
+  med20: {
+    name: 'Atorvastatin 40mg Film-Coated Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/81aa3a0dc6e81da921eceb59ae4dcad510e97116'
+  },
+  med21: {
+    name: 'Atorvastatin 80mg Film-Coated Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/81aa3a0dc6e81da921eceb59ae4dcad510e97116'
+  },
+  med22: {
+    name: 'Folic Acid 5mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/97f818814898303f0bc43822db34a78812fc06d8'
+  },
+  med23: {
+    name: 'Vitamin B Compound Strong Film-Coated Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/467b8dcc21b89cfb3d9480ef68ff46016b9a16fe'
+  },
+  med24: {
+    name: 'Omeprazole 20mg Capsules [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/8f5be6510465a06dfbae2c730d296529fa56e34b'
+  },
+  med25: {
+    name: 'Lansoprazole 15mg Capsules [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/0fe6883416ea6a30a217d26d144d25a190f7edf9'
+  },
+  med26: {
+    name: 'Lansoprazole 30mg Capsules [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/0fe6883416ea6a30a217d26d144d25a190f7edf9'
+  },
+  med27: {
+    name: 'Paracetamol 500mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/985d0e1cb609737ad7fe736ef1d5062041bcb72e'
+  },
+  med28: {
+    name: 'Methotrexate 2.5mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/9c57550530cd3ba5a3e64e6342433a2e6282d44d'
+  },
+  med29: {
+    name: 'Prednisolone 1mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/1c2c645c8dbdc4899acee8387c64e5d4477fafcd'
+  },
+  med30: {
+    name: 'Prednisolone 5mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/1c2c645c8dbdc4899acee8387c64e5d4477fafcd'
+  },
+  med31: {
+    name: 'Ibuprofen 400mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/7c90432e9d72e06968aee1c43ee8373f8db0cb5e'
+  },
+  med32: {
+    name: 'Naproxen 250mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/fd7a4e3fae149213203746c02c73ad178b7a2330'
+  },
+  med33: {
+    name: 'Naproxen 500mg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/fd7a4e3fae149213203746c02c73ad178b7a2330'
+  },
+  med34: {
+    name: 'Digoxin 62.5mcg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/f59eca06038ecaddbce4efb68fcc73b8200f2604'
+  },
+  med35: {
+    name: 'Digoxin 125mcg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/f59eca06038ecaddbce4efb68fcc73b8200f2604'
+  },
+  med36: {
+    name: 'Digoxin 250mcg Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/f59eca06038ecaddbce4efb68fcc73b8200f2604'
+  },
+  med37: {
+    name: 'Amoxicillin 250mg Capsules [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/d593c49ae155a1dfb39ab08ccf3fc15b03599e67'
+  },
+  med38: {
+    name: 'Amoxicillin 500mg Capsules [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/d593c49ae155a1dfb39ab08ccf3fc15b03599e67'
+  },
+  med39: {
+    name: 'Ciprofloxacin 250mg Film-Coated Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/fcbdc98e91a1dbb96ff97e70c13d9add84a83adf'
+  },
+  med40: {
+    name: 'Ciprofloxacin 500mg Film-Coated Tablets [GENERIC]',
+    url: EndPoint + 'https://mhraproducts4853.blob.core.windows.net/docs/fcbdc98e91a1dbb96ff97e70c13d9add84a83adf'
+  }
+}
