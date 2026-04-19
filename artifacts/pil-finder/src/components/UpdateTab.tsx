@@ -872,9 +872,9 @@ export default function UpdateTab() {
                         <td className="px-4 py-3 text-muted-foreground text-xs font-mono">{item.jsKey}</td>
                       )}
                       <td className="px-4 py-3">
-                        <div className="font-medium text-foreground leading-tight whitespace-nowrap">{item.searchTerm}</div>
+                        <div className="font-medium text-foreground leading-tight">{item.searchTerm}</div>
                         {item.productName && item.productName !== item.searchTerm.toUpperCase() && (
-                          <div className="text-xs text-muted-foreground mt-0.5 whitespace-nowrap">{item.productName}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">{item.productName}</div>
                         )}
                       </td>
                       <td className="px-4 py-3">
