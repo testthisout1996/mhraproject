@@ -963,7 +963,7 @@ export default function UpdateTab() {
                   title="Stop"
                   className="border-0 bg-destructive hover:bg-destructive/90 text-white h-8 w-8 shrink-0"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4" strokeWidth={3} />
                 </Button>
                 {!isPaused ? (
                   <Button
@@ -972,7 +972,7 @@ export default function UpdateTab() {
                     title="Pause"
                     className="border-0 h-8 w-8 shrink-0"
                   >
-                    <Pause className="w-4 h-4" />
+                    <Pause className="w-4 h-4" fill="currentColor" />
                   </Button>
                 ) : (
                   <Button
@@ -981,9 +981,17 @@ export default function UpdateTab() {
                     title="Resume"
                     className="border-0 bg-green-600 hover:bg-green-700 text-white h-8 w-8 shrink-0"
                   >
-                    <Play className="w-4 h-4" />
+                    <Play className="w-4 h-4" fill="currentColor" />
                   </Button>
                 )}
+                <Button
+                  onClick={() => void handleStart()}
+                  size="icon"
+                  title="Re-run"
+                  className="border-0 bg-slate-200 hover:bg-slate-300 text-slate-700 h-8 w-8 shrink-0"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
               </div>
             )}
 
