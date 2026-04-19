@@ -327,29 +327,27 @@ export default function Home() {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background">
-      {/* Header */}
-      <header className="bg-primary text-primary-foreground border-b border-primary-border shadow-sm">
-        <div className="container max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
-          <div className="bg-white/10 p-2 rounded-md">
-            <ShieldCheck className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="font-semibold text-base leading-tight tracking-tight">MHRA PIL Finder</h1>
-            <p className="text-primary-foreground/75 text-xs">UK Medicines &amp; Healthcare products Regulatory Agency</p>
-          </div>
-        </div>
-      </header>
-
-      {/* Tab Navigation */}
-      <div className="border-b border-border bg-background">
+      {/* Sticky Navbar */}
+      <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-sm">
         <div className="container max-w-5xl mx-auto px-4">
-          <nav className="flex gap-0" aria-label="Tabs">
+          {/* Brand row */}
+          <div className="flex items-center gap-3 pt-3 pb-2">
+            <div className="bg-white/10 p-1.5 rounded-md">
+              <ShieldCheck className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h1 className="font-semibold text-sm leading-tight tracking-tight">MHRA PIL Finder</h1>
+              <p className="text-primary-foreground/70 text-xs leading-tight">UK Medicines &amp; Healthcare products Regulatory Agency</p>
+            </div>
+          </div>
+          {/* Tab row */}
+          <nav className="flex gap-0 -mb-px" aria-label="Tabs">
             <button
               onClick={() => setActiveTab("search")}
-              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "search"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                  ? "border-white text-white"
+                  : "border-transparent text-primary-foreground/60 hover:text-primary-foreground hover:border-white/40"
               }`}
               data-testid="tab-search"
             >
@@ -360,10 +358,10 @@ export default function Home() {
             </button>
             <button
               onClick={() => setActiveTab("update")}
-              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "update"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                  ? "border-white text-white"
+                  : "border-transparent text-primary-foreground/60 hover:text-primary-foreground hover:border-white/40"
               }`}
               data-testid="tab-update"
             >
@@ -374,10 +372,10 @@ export default function Home() {
             </button>
             <button
               onClick={() => setActiveTab("status")}
-              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "status"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                  ? "border-white text-white"
+                  : "border-transparent text-primary-foreground/60 hover:text-primary-foreground hover:border-white/40"
               }`}
               data-testid="tab-status"
             >
@@ -388,7 +386,7 @@ export default function Home() {
             </button>
           </nav>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
       <main className="flex-1 container max-w-5xl mx-auto px-4 py-8">
