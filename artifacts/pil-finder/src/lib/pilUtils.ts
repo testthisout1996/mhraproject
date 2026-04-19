@@ -59,7 +59,17 @@ function allNumbersMatchProduct(numbers: string[], productName: string): boolean
   return numbers.every(n => numberMatchesProduct(n, productName));
 }
 
+/**
+ * More-specific formulation groups must come BEFORE the generic ones so that
+ * "Orodispersible Tablets" is classified differently from plain "Tablets",
+ * and "Modified-Release Tablets" differently from immediate-release "Tablets".
+ */
 const FORMULATION_GROUPS: { group: string; keywords: string[] }[] = [
+  { group: "orodispersible-tablet",    keywords: ["ORODISPERSIBLE"] },
+  { group: "effervescent-tablet",      keywords: ["EFFERVESCENT"] },
+  { group: "chewable-tablet",          keywords: ["CHEWABLE"] },
+  { group: "dispersible-tablet",       keywords: ["DISPERSIBLE TABLET", "DISPERSIBLE TABLETS"] },
+  { group: "modified-release-tablet",  keywords: ["MODIFIED-RELEASE", "MODIFIED RELEASE", "PROLONGED-RELEASE", "PROLONGED RELEASE", "EXTENDED-RELEASE", "EXTENDED RELEASE"] },
   { group: "tablet",        keywords: ["TABLETS", "TABLET"] },
   { group: "capsule",       keywords: ["CAPSULES", "CAPSULE"] },
   { group: "solution",      keywords: ["ORAL SOLUTION", "SOLUTION"] },
@@ -79,7 +89,14 @@ const FORMULATION_GROUPS: { group: string; keywords: string[] }[] = [
 function detectFormulationGroup(text: string): string | null {
   const norm = normalizeText(text);
   for (const { group, keywords } of FORMULATION_GROUPS) {
-    if (keywords.some(kw => new RegExp(`\\b${kw}\\b`).test(norm))) return group;
+    const matched = keywords.some(kw => {
+      const kwNorm = normalizeText(kw);
+      // Multi-word keywords: simple substring check on the normalised text
+      if (kwNorm.includes(" ")) return norm.includes(kwNorm);
+      // Single-word keyword: whole-word boundary check
+      return new RegExp(`\\b${kwNorm}\\b`).test(norm);
+    });
+    if (matched) return group;
   }
   return null;
 }
@@ -91,6 +108,8 @@ function detectFormulationGroup(text: string): string | null {
  * These words do NOT indicate a branded product.
  */
 const PHARMACEUTICAL_TOLERATED_EXTRAS = new Set([
+  // Connectors
+  "AS", "AND", "WITH",
   // Salt / counterion forms
   "SODIUM", "POTASSIUM", "CALCIUM", "MAGNESIUM", "ZINC", "IRON",
   "FERROUS", "FERRIC", "ALUMINIUM", "ALUMINUM",
@@ -102,6 +121,7 @@ const PHARMACEUTICAL_TOLERATED_EXTRAS = new Set([
   "GLUCONATE", "LACTATE", "NITRATE", "CARBONATE", "BICARBONATE",
   "BROMIDE", "CHLORIDE", "IODIDE", "FLUORIDE", "OXIDE", "HYDROXIDE",
   "MESYLATE", "BESYLATE", "TOSYLATE", "EMBONATE", "PAMOATE",
+  "BESILATE", "MESILATE",
   // Hydration states
   "MONOHYDRATE", "DIHYDRATE", "TRIHYDRATE", "TETRAHYDRATE",
   "ANHYDROUS", "HEMIHYDRATE", "SESQUIHYDRATE", "HYDRATE",
@@ -121,9 +141,12 @@ const PHARMACEUTICAL_TOLERATED_EXTRAS = new Set([
   "DELAYED", "LA", "ER", "PR",
   // Coating / presentation
   "GASTRO", "RESISTANT", "ENTERIC", "COATED", "FILM", "HARD",
-  "SOFT", "SUGAR", "DISPERSIBLE",
+  "SOFT", "SUGAR", "DISPERSIBLE", "EFFERVESCENT", "CHEWABLE",
+  "ORODISPERSIBLE", "SUBLINGUAL", "BUCCAL", "SOLUBLE",
   // Common qualifiers MHRA adds
   "ORAL", "SOLUTION", "FOR", "INFUSION", "CONCENTRATE",
+  "INHALATION", "NEBULISER", "NEBULIZER", "INTRAVENOUS",
+  "INTRAMUSCULAR", "SUBCUTANEOUS", "TOPICAL", "TRANSDERMAL",
 ]);
 
 /**
@@ -168,7 +191,6 @@ export function pickBestResult(
     const withDrug = drugFirstWord
       ? results.filter(r => {
           const productWords = splitWords(r.productName);
-          // Require the drug name word to appear as a whole-word match (not merely a substring)
           return productWords.some(pw => pw === drugFirstWord || pw.startsWith(drugFirstWord) || drugFirstWord.startsWith(pw));
         })
       : results;
@@ -192,7 +214,6 @@ export function pickBestResult(
       const productWords = splitWords(r.productName);
 
       // Primary: words in product name that look like brand/trade names
-      // (not in search, not a tolerated pharmaceutical extra, not a number)
       const brandWordCount = countBrandWords(productWords, searchWords);
 
       // Secondary: search words not found anywhere in product name
@@ -200,7 +221,7 @@ export function pickBestResult(
         sw => !productWords.some(pw => pw.startsWith(sw) || sw.startsWith(pw))
       ).length;
 
-      // Tertiary: total extra words in product (includes tolerated ones — lower is closer match)
+      // Tertiary: total extra words in product (lower is closer match)
       const extra = productWords.filter(
         pw => !searchWords.some(sw => pw.startsWith(sw) || sw.startsWith(pw))
       ).length;
@@ -218,13 +239,12 @@ export function pickBestResult(
     return scored[0].result;
 
   } else {
-    // For branded: BOTH the brand AND the drug name must appear in the product name.
-    // Requiring the drug name is a hard filter — it prevents returning an entirely
-    // different drug that happens to share the brand name (e.g. "Imatinib Accord"
-    // when searching for "Levothyroxine [ACCORD]").
+    // For branded: brand name must appear in the product name.
     const withBrand = results.filter(r => brandWordsMatch(brand, r.productName));
     if (withBrand.length === 0) return undefined;
 
+    // Prefer results that ALSO contain the drug name, but fall back to brand-only
+    // matches if the brand's product naming doesn't include the INN (e.g. Stexerol-D3).
     const withDrugAndBrand = drugFirstWord
       ? withBrand.filter(r => {
           const productWords = splitWords(r.productName);
@@ -233,12 +253,14 @@ export function pickBestResult(
           );
         })
       : withBrand;
-    if (withDrugAndBrand.length === 0) return undefined;
+
+    // Use whichever pool is non-empty — prefer the narrower drug+brand set
+    const brandPool = withDrugAndBrand.length > 0 ? withDrugAndBrand : withBrand;
 
     // All numbers from search term must appear in product name
     const withNumbers = searchNumbers.length > 0
-      ? withDrugAndBrand.filter(r => allNumbersMatchProduct(searchNumbers, r.productName))
-      : withDrugAndBrand;
+      ? brandPool.filter(r => allNumbersMatchProduct(searchNumbers, r.productName))
+      : brandPool;
     if (withNumbers.length === 0) return undefined;
 
     // Prefer results with matching formulation (soft: fall back if none match)
@@ -250,8 +272,6 @@ export function pickBestResult(
 
 export function buildSearchQuery(searchTerm: string, brand: string): string {
   if (brand === "GENERIC") return searchTerm;
-  // Include the full drug name AND the brand so Azure Search finds the right drug,
-  // not just any product bearing that brand name.
   return `${searchTerm} ${brand}`;
 }
 

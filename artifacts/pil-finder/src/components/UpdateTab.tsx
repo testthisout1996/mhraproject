@@ -20,6 +20,7 @@ interface MedicationItem {
   jsKey?: string;
   originalUrl?: string;
   existingFullUrl?: string;
+  defaultedToGeneric?: boolean;
 }
 
 interface SearchApiResult {
@@ -268,25 +269,29 @@ async function fetchResults(query: string, pageSize = 10): Promise<SearchApiResu
 async function searchForPil(
   searchTerm: string,
   brand: string,
-): Promise<{ best: SearchApiResult["results"][0] | undefined; all: SearchApiResult["results"] }> {
+): Promise<{ best: SearchApiResult["results"][0] | undefined; all: SearchApiResult["results"]; defaultedToGeneric: boolean }> {
   if (brand === "GENERIC") {
-    const results = await fetchResults(searchTerm, 10);
+    const results = await fetchResults(searchTerm, 15);
     const best = pickBestResult(results, brand, searchTerm);
-    return { best, all: results };
+    return { best, all: results, defaultedToGeneric: false };
   }
 
   const brandDoseQuery = buildSearchQuery(searchTerm, brand);
   const drugName = searchTerm.split(/\s+/)[0] ?? searchTerm;
   const drugBrandQuery = `${drugName} ${brand}`;
+  // Also query the brand name on its own — catches products whose MHRA name
+  // doesn't include the INN (e.g. "Stexerol-D3 1000 IU Tablets").
+  const brandOnlyQuery = brand;
 
-  const [doseResults, drugBrandResults] = await Promise.all([
+  const [doseResults, drugBrandResults, brandOnlyResults] = await Promise.all([
     fetchResults(brandDoseQuery, 10),
     fetchResults(drugBrandQuery, 10),
+    fetchResults(brandOnlyQuery, 10),
   ]);
 
   const seen = new Set<string>();
   const combined: SearchApiResult["results"] = [];
-  for (const r of [...drugBrandResults, ...doseResults]) {
+  for (const r of [...drugBrandResults, ...doseResults, ...brandOnlyResults]) {
     if (!seen.has(r.documentUrl)) {
       seen.add(r.documentUrl);
       combined.push(r);
@@ -294,12 +299,12 @@ async function searchForPil(
   }
 
   const best = pickBestResult(combined, brand, searchTerm);
-  if (best) return { best, all: combined };
+  if (best) return { best, all: combined, defaultedToGeneric: false };
 
   // Brand-specific PIL not found — fall back to a generic PIL for the same drug.
-  const genericResults = await fetchResults(searchTerm, 10);
+  const genericResults = await fetchResults(searchTerm, 15);
   const genericBest = pickBestResult(genericResults, "GENERIC", searchTerm);
-  return { best: genericBest, all: genericResults };
+  return { best: genericBest, all: genericResults, defaultedToGeneric: !!genericBest };
 }
 
 function CopyButton({ text, label }: { text: string; label?: string }) {
@@ -423,7 +428,7 @@ export default function UpdateTab() {
       );
 
       try {
-        const { best } = await searchForPil(item.searchTerm, item.brand);
+        const { best, defaultedToGeneric } = await searchForPil(item.searchTerm, item.brand);
 
         if (best) {
           const isUnchanged = matchesExistingPilDocument(best.documentUrl, item);
@@ -437,6 +442,7 @@ export default function UpdateTab() {
                     productName: best.productName,
                     plNumber: best.plNumber,
                     title: best.title,
+                    defaultedToGeneric,
                   }
                 : cur
             )
@@ -840,7 +846,7 @@ export default function UpdateTab() {
                     <tr
                       key={item.id}
                       id={`med-row-${idx}`}
-                      className={`transition-colors ${isNotFound ? "bg-red-100 hover:bg-red-200" : "hover:bg-muted/20"}`}
+                      className={`transition-colors ${isNotFound ? "bg-red-100 hover:bg-red-200" : item.defaultedToGeneric ? "bg-orange-50 hover:bg-orange-100" : "hover:bg-muted/20"}`}
                       data-testid={`row-medication-${idx}`}
                     >
                       <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
@@ -904,18 +910,25 @@ export default function UpdateTab() {
                       </td>
                       <td className="px-4 py-3">
                         {item.documentUrl ? (
-                          <div className="flex items-center gap-2">
-                            <a
-                              href={item.documentUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary hover:text-primary/80 underline text-xs font-mono truncate max-w-xs block"
-                              title={item.documentUrl}
-                              data-testid={`link-pil-${idx}`}
-                            >
-                              {item.documentUrl.split("/").pop()}
-                            </a>
-                            <CopyButton text={item.documentUrl} />
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-2">
+                              <a
+                                href={item.documentUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:text-primary/80 underline text-xs font-mono truncate max-w-xs block"
+                                title={item.documentUrl}
+                                data-testid={`link-pil-${idx}`}
+                              >
+                                {item.documentUrl.split("/").pop()}
+                              </a>
+                              <CopyButton text={item.documentUrl} />
+                            </div>
+                            {item.defaultedToGeneric && (
+                              <span className="text-xs text-muted-foreground italic">
+                                (Defaulted to GENERIC Leaflet)
+                              </span>
+                            )}
                           </div>
                         ) : item.status !== "pending" && item.status !== "searching" ? (
                           <span className="text-xs text-muted-foreground italic">No PIL found</span>
@@ -997,7 +1010,7 @@ export default function UpdateTab() {
 
             {(isRunning || isDone) && notFoundIndices.length > 0 && (
               <>
-                <div className="text-xs text-destructive font-semibold px-1 pt-1">
+                <div className="text-xs text-destructive font-semibold px-1 pt-1 text-center">
                   {notFoundIndices.length} not found — {notFoundNavIdx + 1} / {notFoundIndices.length}
                 </div>
                 <Button
