@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Upload, ClipboardPaste, Play, Pause, X, Download, CheckCircle, XCircle, Loader2, FileText, RefreshCw, Copy, Check, ArrowUp, ChevronUp, ChevronDown, PauseCircle, PlayCircle } from "lucide-react";
+import { Upload, ClipboardPaste, Play, Pause, X, Download, CheckCircle, XCircle, Loader2, FileText, RefreshCw, Copy, Check, ArrowUp, ChevronUp, ChevronDown, ChevronRight, PauseCircle, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -717,45 +717,50 @@ export default function UpdateTab() {
           </>
         )}
 
-        {(isRunning || isDone) && notFoundIndices.length > 0 && (
-          <>
-            <div className="w-px h-6 bg-border mx-1" />
-            <span className="text-xs text-destructive font-medium">
-              {notFoundIndices.length} not found:
-            </span>
-            <Button
-              onClick={() => navigateToNotFound(0)}
-              variant="outline"
-              size="sm"
-              className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/5"
-            >
-              <ChevronUp className="w-3.5 h-3.5" />
-              First
-            </Button>
-            <Button
-              onClick={() => navigateToNotFound(hasPrevNotFound ? notFoundNavIdx - 1 : 0)}
-              variant="outline"
-              size="sm"
-              className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/5"
-              disabled={!hasPrevNotFound}
-            >
-              ↑ Prev
-            </Button>
-            <Button
-              onClick={() => navigateToNotFound(hasNextNotFound ? notFoundNavIdx + 1 : notFoundNavIdx)}
-              variant="outline"
-              size="sm"
-              className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/5"
-              disabled={!hasNextNotFound}
-            >
-              Next ↓
-            </Button>
-            <span className="text-xs text-muted-foreground">
-              {notFoundNavIdx + 1} / {notFoundIndices.length}
-            </span>
-          </>
-        )}
       </div>
+
+      {(isRunning || isDone) && notFoundIndices.length > 0 && (
+        <Card className="border-destructive/30 bg-destructive/5 shadow-sm">
+          <CardContent className="p-3 flex items-center gap-3 flex-wrap">
+            <span className="text-sm font-semibold text-destructive flex items-center gap-1.5">
+              <XCircle className="w-4 h-4" />
+              Medications not found: {notFoundIndices.length}
+            </span>
+            <div className="flex items-center gap-2 ml-auto">
+              <Button
+                onClick={() => navigateToNotFound(0)}
+                variant="outline"
+                size="sm"
+                className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+                Jump to First
+              </Button>
+              <Button
+                onClick={() => navigateToNotFound(hasPrevNotFound ? notFoundNavIdx - 1 : 0)}
+                variant="outline"
+                size="sm"
+                className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10"
+                disabled={!hasPrevNotFound}
+              >
+                ← Previous
+              </Button>
+              <Button
+                onClick={() => navigateToNotFound(hasNextNotFound ? notFoundNavIdx + 1 : notFoundNavIdx)}
+                variant="outline"
+                size="sm"
+                className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10"
+                disabled={!hasNextNotFound}
+              >
+                Next →
+              </Button>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {notFoundNavIdx + 1} / {notFoundIndices.length}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {(isRunning || isDone) && total > 0 && (
         <Card className="border-border/80 shadow-sm">
@@ -1006,32 +1011,6 @@ export default function UpdateTab() {
                   <RefreshCw className="w-4 h-4" strokeWidth={2.5} />
                 </Button>
               </div>
-            )}
-
-            {(isRunning || isDone) && notFoundIndices.length > 0 && (
-              <>
-                <div className="text-xs text-destructive font-semibold px-1 pt-1 text-center">
-                  {notFoundIndices.length} not found — {notFoundNavIdx + 1} / {notFoundIndices.length}
-                </div>
-                <Button
-                  onClick={() => navigateToNotFound(hasPrevNotFound ? notFoundNavIdx - 1 : 0)}
-                  size="sm"
-                  className="border-0 gap-2 w-full justify-center"
-                  disabled={!hasPrevNotFound}
-                >
-                  <ChevronUp className="w-4 h-4" />
-                  Prev not found
-                </Button>
-                <Button
-                  onClick={() => navigateToNotFound(hasNextNotFound ? notFoundNavIdx + 1 : notFoundNavIdx)}
-                  size="sm"
-                  className="border-0 gap-2 w-full justify-center"
-                  disabled={!hasNextNotFound}
-                >
-                  <ChevronDown className="w-4 h-4" />
-                  Next not found
-                </Button>
-              </>
             )}
 
             <Button
