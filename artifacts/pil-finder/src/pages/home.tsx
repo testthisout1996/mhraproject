@@ -392,9 +392,9 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="flex-1 container max-w-5xl mx-auto px-4 py-8">
-        {activeTab === "search" && <SearchTab />}
-        {activeTab === "update" && <UpdateTab />}
-        {activeTab === "status" && <ServiceStatusTab />}
+        <div className={activeTab === "search" ? undefined : "hidden"}><SearchTab /></div>
+        <div className={activeTab === "update" ? undefined : "hidden"}><UpdateTab /></div>
+        <div className={activeTab === "status" ? undefined : "hidden"}><ServiceStatusTab /></div>
       </main>
 
       {/* Footer */}
