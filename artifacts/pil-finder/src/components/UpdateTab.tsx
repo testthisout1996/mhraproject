@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Upload, ClipboardPaste, Play, Pause, X, Download, CheckCircle, XCircle, Loader2, FileText, RefreshCw, Copy, Check, ArrowUp, ChevronUp, ChevronDown, ChevronRight, PauseCircle, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -348,6 +349,9 @@ export default function UpdateTab() {
   const [controlsVisible, setControlsVisible] = useState(true);
   const [notFoundNavIdx, setNotFoundNavIdx] = useState(0);
   const [panelMinimized, setPanelMinimized] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => { setIsMounted(true); }, []);
 
   useEffect(() => {
     const el = controlsRef.current;
@@ -950,7 +954,7 @@ export default function UpdateTab() {
         </div>
       )}
 
-      {showFloating && (
+      {showFloating && isMounted && createPortal(
         <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 items-end">
           {panelMinimized ? (
             /* ── Minimised: small icon-only square ── */
@@ -1080,7 +1084,8 @@ export default function UpdateTab() {
               </Button>
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
