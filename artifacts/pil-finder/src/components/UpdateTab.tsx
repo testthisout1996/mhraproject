@@ -963,7 +963,7 @@ export default function UpdateTab() {
                   title="Stop"
                   className="border-0 bg-destructive hover:bg-destructive/90 text-white h-8 w-8 shrink-0"
                 >
-                  <X className="w-4 h-4" strokeWidth={3} />
+                  <X className="w-5 h-5" strokeWidth={3.5} />
                 </Button>
                 {!isPaused ? (
                   <Button
@@ -990,7 +990,7 @@ export default function UpdateTab() {
                   title="Re-run"
                   className="border-0 bg-slate-200 hover:bg-slate-300 text-slate-700 h-8 w-8 shrink-0"
                 >
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCw className="w-4 h-4" strokeWidth={2.5} />
                 </Button>
               </div>
             )}
