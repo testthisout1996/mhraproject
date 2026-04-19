@@ -956,35 +956,35 @@ export default function UpdateTab() {
             )}
 
             {isRunning && (
-              <>
+              <div className="flex gap-1.5 justify-center">
                 <Button
                   onClick={handleStop}
-                  size="sm"
-                  className="gap-2 w-full justify-center bg-destructive hover:bg-destructive/90 text-white"
+                  size="icon"
+                  title="Stop"
+                  className="border-0 bg-destructive hover:bg-destructive/90 text-white h-8 w-8 shrink-0"
                 >
                   <Square className="w-4 h-4" />
-                  Stop
                 </Button>
                 {!isPaused ? (
                   <Button
                     onClick={handlePause}
-                    size="sm"
-                    className="gap-2 w-full justify-center"
+                    size="icon"
+                    title="Pause"
+                    className="border-0 h-8 w-8 shrink-0"
                   >
                     <Pause className="w-4 h-4" />
-                    Pause
                   </Button>
                 ) : (
                   <Button
                     onClick={handleResume}
-                    size="sm"
-                    className="gap-2 w-full justify-center bg-green-600 hover:bg-green-700 text-white"
+                    size="icon"
+                    title="Resume"
+                    className="border-0 bg-green-600 hover:bg-green-700 text-white h-8 w-8 shrink-0"
                   >
                     <Play className="w-4 h-4" />
-                    Resume
                   </Button>
                 )}
-              </>
+              </div>
             )}
 
             {(isRunning || isDone) && notFoundIndices.length > 0 && (
@@ -995,7 +995,7 @@ export default function UpdateTab() {
                 <Button
                   onClick={() => navigateToNotFound(hasPrevNotFound ? notFoundNavIdx - 1 : 0)}
                   size="sm"
-                  className="gap-2 w-full justify-center"
+                  className="border-0 gap-2 w-full justify-center"
                   disabled={!hasPrevNotFound}
                 >
                   <ChevronUp className="w-4 h-4" />
@@ -1004,7 +1004,7 @@ export default function UpdateTab() {
                 <Button
                   onClick={() => navigateToNotFound(hasNextNotFound ? notFoundNavIdx + 1 : notFoundNavIdx)}
                   size="sm"
-                  className="gap-2 w-full justify-center"
+                  className="border-0 gap-2 w-full justify-center"
                   disabled={!hasNextNotFound}
                 >
                   <ChevronDown className="w-4 h-4" />
@@ -1016,7 +1016,7 @@ export default function UpdateTab() {
             <Button
               onClick={scrollToTop}
               size="sm"
-              className="gap-2 w-full justify-center bg-teal-600 hover:bg-teal-700 text-white"
+              className="border-0 gap-2 w-full justify-center bg-teal-600 hover:bg-teal-700 text-white"
             >
               <ArrowUp className="w-4 h-4" />
               Back to top
