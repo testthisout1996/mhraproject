@@ -836,16 +836,24 @@ export default function UpdateTab() {
           <h3 className="text-base font-semibold text-foreground">Results</h3>
           <div className="border border-border rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm table-fixed">
+                <colgroup>
+                  <col className="w-10" />
+                  {inputFormat === "js" && <col className="w-20" />}
+                  <col className="w-72" />
+                  <col className="w-24" />
+                  <col className="w-28" />
+                  <col />
+                </colgroup>
                 <thead>
                   <tr className="bg-muted/50 border-b border-border">
-                    <th className="text-left px-4 py-3 font-semibold text-foreground/80 text-xs uppercase tracking-wider w-8">#</th>
+                    <th className="text-left px-4 py-3 font-semibold text-foreground/80 text-xs uppercase tracking-wider">#</th>
                     {inputFormat === "js" && (
-                      <th className="text-left px-4 py-3 font-semibold text-foreground/80 text-xs uppercase tracking-wider w-16">Key</th>
+                      <th className="text-left px-4 py-3 font-semibold text-foreground/80 text-xs uppercase tracking-wider">Key</th>
                     )}
                     <th className="text-left px-4 py-3 font-semibold text-foreground/80 text-xs uppercase tracking-wider">Medication</th>
-                    <th className="text-left px-4 py-3 font-semibold text-foreground/80 text-xs uppercase tracking-wider w-20">Type</th>
-                    <th className="text-left px-4 py-3 font-semibold text-foreground/80 text-xs uppercase tracking-wider w-24">Status</th>
+                    <th className="text-left px-4 py-3 font-semibold text-foreground/80 text-xs uppercase tracking-wider">Type</th>
+                    <th className="text-left px-4 py-3 font-semibold text-foreground/80 text-xs uppercase tracking-wider">Status</th>
                     <th className="text-left px-4 py-3 font-semibold text-foreground/80 text-xs uppercase tracking-wider">PIL Link</th>
                   </tr>
                 </thead>
@@ -864,9 +872,9 @@ export default function UpdateTab() {
                         <td className="px-4 py-3 text-muted-foreground text-xs font-mono">{item.jsKey}</td>
                       )}
                       <td className="px-4 py-3">
-                        <div className="font-medium text-foreground leading-tight">{item.searchTerm}</div>
+                        <div className="font-medium text-foreground leading-tight whitespace-nowrap">{item.searchTerm}</div>
                         {item.productName && item.productName !== item.searchTerm.toUpperCase() && (
-                          <div className="text-xs text-muted-foreground mt-0.5">{item.productName}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5 whitespace-nowrap">{item.productName}</div>
                         )}
                       </td>
                       <td className="px-4 py-3">
