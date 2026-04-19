@@ -332,12 +332,12 @@ export default function Home() {
         <div className="container max-w-5xl mx-auto px-4 h-[75px] flex items-center justify-between gap-4">
           {/* Brand */}
           <div className="flex items-center gap-3 shrink-0">
-            <div className="bg-white/10 p-1.5 rounded-md">
-              <ShieldCheck className="w-4 h-4 text-white" />
+            <div className="bg-white/10 p-2.5 rounded-md">
+              <ShieldCheck className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="font-semibold text-sm leading-tight tracking-tight">MHRA PIL Finder</h1>
-              <p className="text-primary-foreground/70 text-xs leading-tight">UK Medicines &amp; Healthcare products Regulatory Agency</p>
+              <h1 className="font-bold text-xl leading-tight tracking-tight">MHRA PIL Finder</h1>
+              <p className="text-primary-foreground/70 text-sm leading-tight">UK Medicines &amp; Healthcare products Regulatory Agency</p>
             </div>
           </div>
           {/* Tab buttons */}
