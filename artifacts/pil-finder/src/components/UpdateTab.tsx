@@ -347,6 +347,7 @@ export default function UpdateTab() {
   const controlsRef = useRef<HTMLDivElement>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [notFoundNavIdx, setNotFoundNavIdx] = useState(0);
+  const [panelMinimized, setPanelMinimized] = useState(false);
 
   useEffect(() => {
     const el = controlsRef.current;
@@ -851,7 +852,7 @@ export default function UpdateTab() {
                     <tr
                       key={item.id}
                       id={`med-row-${idx}`}
-                      className={`transition-colors ${isNotFound ? "bg-red-100 hover:bg-red-200" : item.defaultedToGeneric ? "bg-orange-50 hover:bg-orange-100" : "hover:bg-muted/20"}`}
+                      className={`transition-colors ${isNotFound ? "bg-red-100 hover:bg-red-200" : item.defaultedToGeneric ? "bg-orange-200 hover:bg-orange-300" : "hover:bg-muted/20"}`}
                       data-testid={`row-medication-${idx}`}
                     >
                       <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
@@ -951,77 +952,134 @@ export default function UpdateTab() {
 
       {showFloating && (
         <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 items-end">
-          <div className="bg-background border border-border rounded-xl shadow-lg p-3 flex flex-col gap-2 min-w-[180px]">
-
-            {isRunning && (
-              <div className="flex items-center gap-2 px-1 pb-2 border-b border-border mb-1">
-                {isPaused ? (
-                  <PauseCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                ) : (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
-                )}
-                <span className="text-xs font-semibold text-foreground">
-                  {isPaused ? `Paused at ${processed + 1} of ${total}` : `Checking ${processed + 1} of ${total}`}
-                </span>
-              </div>
-            )}
-
-            {isDone && (
-              <div className="flex items-center gap-2 px-1 pb-2 border-b border-border mb-1">
-                <CheckCircle className="w-3.5 h-3.5 text-green-600 shrink-0" />
-                <span className="text-xs font-semibold text-foreground">Complete</span>
-              </div>
-            )}
-
-            {isRunning && (
-              <div className="flex gap-1.5 justify-center">
-                <Button
-                  onClick={handleStop}
-                  size="icon"
-                  title="Stop"
-                  className="border-0 bg-destructive hover:bg-destructive/90 text-white h-8 w-8 shrink-0"
-                >
-                  <X className="w-5 h-5" strokeWidth={3.5} />
-                </Button>
-                {!isPaused ? (
-                  <Button
-                    onClick={handlePause}
-                    size="icon"
-                    title="Pause"
-                    className="border-0 h-8 w-8 shrink-0"
-                  >
-                    <Pause className="w-4 h-4" fill="currentColor" />
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={handleResume}
-                    size="icon"
-                    title="Resume"
-                    className="border-0 bg-green-600 hover:bg-green-700 text-white h-8 w-8 shrink-0"
-                  >
-                    <Play className="w-4 h-4" fill="currentColor" />
-                  </Button>
-                )}
-                <Button
-                  onClick={() => void handleStart()}
-                  size="icon"
-                  title="Re-run"
-                  className="border-0 bg-slate-200 hover:bg-slate-300 text-slate-700 h-8 w-8 shrink-0"
-                >
-                  <RefreshCw className="w-4 h-4" strokeWidth={2.5} />
-                </Button>
-              </div>
-            )}
-
-            <Button
-              onClick={scrollToTop}
-              size="sm"
-              className="border-0 gap-2 w-full justify-center bg-teal-600 hover:bg-teal-700 text-white"
+          {panelMinimized ? (
+            /* ── Minimised: small icon-only square ── */
+            <button
+              onClick={() => setPanelMinimized(false)}
+              title="Expand panel"
+              className="bg-background border border-border rounded-xl shadow-lg p-2.5 flex items-center justify-center hover:bg-muted transition-colors"
             >
-              <ArrowUp className="w-4 h-4" />
-              Back to top
-            </Button>
-          </div>
+              {isRunning && !isPaused ? (
+                <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              ) : isPaused ? (
+                <PauseCircle className="w-5 h-5 text-amber-500" />
+              ) : (
+                <CheckCircle className="w-5 h-5 text-green-600" />
+              )}
+              <ChevronUp className="w-3.5 h-3.5 text-muted-foreground ml-1" />
+            </button>
+          ) : (
+            /* ── Expanded panel ── */
+            <div className="bg-background border border-border rounded-xl shadow-lg p-3 flex flex-col gap-2 min-w-[190px]">
+
+              {/* Header row with status + minimise button */}
+              <div className="flex items-center justify-between gap-2 px-1 pb-2 border-b border-border mb-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  {isRunning ? (
+                    isPaused ? (
+                      <PauseCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    ) : (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
+                    )
+                  ) : (
+                    <CheckCircle className="w-3.5 h-3.5 text-green-600 shrink-0" />
+                  )}
+                  <span className="text-xs font-semibold text-foreground truncate">
+                    {isRunning
+                      ? isPaused
+                        ? `Paused ${processed + 1}/${total}`
+                        : `Checking ${processed + 1}/${total}`
+                      : "Complete"}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setPanelMinimized(true)}
+                  title="Minimise panel"
+                  className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Stop / Pause / Resume / Re-run */}
+              {isRunning && (
+                <div className="flex gap-1.5 justify-center">
+                  <Button
+                    onClick={handleStop}
+                    size="icon"
+                    title="Stop"
+                    className="border-0 bg-destructive hover:bg-destructive/90 text-white h-8 w-8 shrink-0"
+                  >
+                    <X className="w-5 h-5" strokeWidth={3.5} />
+                  </Button>
+                  {!isPaused ? (
+                    <Button
+                      onClick={handlePause}
+                      size="icon"
+                      title="Pause"
+                      className="border-0 h-8 w-8 shrink-0"
+                    >
+                      <Pause className="w-4 h-4" fill="currentColor" />
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleResume}
+                      size="icon"
+                      title="Resume"
+                      className="border-0 bg-green-600 hover:bg-green-700 text-white h-8 w-8 shrink-0"
+                    >
+                      <Play className="w-4 h-4" fill="currentColor" />
+                    </Button>
+                  )}
+                  <Button
+                    onClick={() => void handleStart()}
+                    size="icon"
+                    title="Re-run"
+                    className="border-0 bg-slate-200 hover:bg-slate-300 text-slate-700 h-8 w-8 shrink-0"
+                  >
+                    <RefreshCw className="w-4 h-4" strokeWidth={2.5} />
+                  </Button>
+                </div>
+              )}
+
+              {/* Not-found navigation */}
+              {(isRunning || isDone) && notFoundIndices.length > 0 && (
+                <>
+                  <div className="text-xs text-destructive font-semibold px-1 text-center">
+                    {notFoundIndices.length} not found — {notFoundNavIdx + 1} / {notFoundIndices.length}
+                  </div>
+                  <Button
+                    onClick={() => navigateToNotFound(hasPrevNotFound ? notFoundNavIdx - 1 : 0)}
+                    size="sm"
+                    className="border-0 gap-2 w-full justify-center"
+                    disabled={!hasPrevNotFound}
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                    Prev not found
+                  </Button>
+                  <Button
+                    onClick={() => navigateToNotFound(hasNextNotFound ? notFoundNavIdx + 1 : notFoundNavIdx)}
+                    size="sm"
+                    className="border-0 gap-2 w-full justify-center"
+                    disabled={!hasNextNotFound}
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                    Next not found
+                  </Button>
+                </>
+              )}
+
+              {/* Back to top */}
+              <Button
+                onClick={scrollToTop}
+                size="sm"
+                className="border-0 gap-2 w-full justify-center bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                <ArrowUp className="w-4 h-4" />
+                Back to top
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
