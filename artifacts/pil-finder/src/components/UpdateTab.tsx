@@ -551,7 +551,8 @@ export default function UpdateTab() {
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
-  const showFloating = !controlsVisible && (isRunning || isDone);
+  const isStopped = !isRunning && items.length > 0 && !isDone;
+  const showFloating = !controlsVisible && items.length > 0;
 
   return (
     <div className="space-y-6">
@@ -975,6 +976,8 @@ export default function UpdateTab() {
                 <Loader2 className="w-5 h-5 animate-spin text-primary" />
               ) : isPaused ? (
                 <PauseCircle className="w-5 h-5 text-amber-500" />
+              ) : isStopped ? (
+                <XCircle className="w-5 h-5 text-destructive" />
               ) : (
                 <CheckCircle className="w-5 h-5 text-green-600" />
               )}
@@ -993,6 +996,8 @@ export default function UpdateTab() {
                     ) : (
                       <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
                     )
+                  ) : isStopped ? (
+                    <XCircle className="w-3.5 h-3.5 text-destructive shrink-0" />
                   ) : (
                     <CheckCircle className="w-3.5 h-3.5 text-green-600 shrink-0" />
                   )}
@@ -1001,7 +1006,9 @@ export default function UpdateTab() {
                       ? isPaused
                         ? `Paused ${processed + 1}/${total}`
                         : `Checking ${processed + 1}/${total}`
-                      : "Complete"}
+                      : isStopped
+                        ? `Stopped ${processed}/${total}`
+                        : "Complete"}
                   </span>
                 </div>
                 <button
@@ -1053,9 +1060,19 @@ export default function UpdateTab() {
                   </Button>
                 </div>
               )}
+              {(isDone || isStopped) && (
+                <Button
+                  onClick={() => void handleStart()}
+                  size="sm"
+                  className="border-0 gap-2 w-full justify-center bg-slate-200 hover:bg-slate-300 text-slate-700"
+                >
+                  <RefreshCw className="w-4 h-4" strokeWidth={2.5} />
+                  Re-run
+                </Button>
+              )}
 
               {/* Not-found navigation */}
-              {(isRunning || isDone) && notFoundIndices.length > 0 && (
+              {notFoundIndices.length > 0 && (
                 <>
                   <div className="text-xs text-destructive font-semibold px-1 text-center">
                     {notFoundIndices.length} not found — {notFoundNavIdx + 1} / {notFoundIndices.length}
@@ -1064,10 +1081,9 @@ export default function UpdateTab() {
                     onClick={() => navigateToNotFound(hasPrevNotFound ? notFoundNavIdx - 1 : 0)}
                     size="sm"
                     className="border-0 gap-2 w-full justify-center"
-                    disabled={!hasPrevNotFound}
                   >
                     <ChevronUp className="w-4 h-4" />
-                    Prev not found
+                    {hasPrevNotFound ? "Previous" : "Go To First"}
                   </Button>
                   <Button
                     onClick={() => navigateToNotFound(hasNextNotFound ? notFoundNavIdx + 1 : notFoundNavIdx)}
