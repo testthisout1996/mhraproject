@@ -489,6 +489,77 @@ export default function UpdateTab() {
     setIsPaused(false);
   };
 
+  const handleResumeAfterStop = async () => {
+    if (!items.length || isRunning) return;
+
+    const startFrom = processed;
+    const currentItems = items;
+
+    setIsRunning(true);
+    abortRef.current = false;
+    isPausedRef.current = false;
+    setIsPaused(false);
+
+    const waitIfPaused = () =>
+      new Promise<void>(resolve => {
+        const check = () => {
+          if (!isPausedRef.current) resolve();
+          else setTimeout(check, 100);
+        };
+        check();
+      });
+
+    for (let i = startFrom; i < currentItems.length; i++) {
+      await waitIfPaused();
+      if (abortRef.current) break;
+
+      const item = currentItems[i];
+
+      setItems(prev =>
+        prev.map((cur, idx) => (idx === i ? { ...cur, status: "searching" } : cur))
+      );
+
+      try {
+        const { best, defaultedToGeneric } = await searchForPil(item.searchTerm, item.brand);
+
+        if (best) {
+          const isUnchanged = matchesExistingPilDocument(best.documentUrl, item);
+          setItems(prev =>
+            prev.map((cur, idx) =>
+              idx === i
+                ? {
+                    ...cur,
+                    status: isUnchanged ? "unchanged" : "found",
+                    documentUrl: best.documentUrl,
+                    productName: best.productName,
+                    plNumber: best.plNumber,
+                    title: best.title,
+                    defaultedToGeneric,
+                  }
+                : cur
+            )
+          );
+        } else {
+          setItems(prev =>
+            prev.map((cur, idx) => idx === i ? { ...cur, status: "not_found" } : cur)
+          );
+        }
+      } catch {
+        setItems(prev =>
+          prev.map((cur, idx) => (idx === i ? { ...cur, status: "error" } : cur))
+        );
+      }
+
+      setProcessed(i + 1);
+
+      if (i < currentItems.length - 1) {
+        await new Promise(r => setTimeout(r, 150));
+      }
+    }
+
+    setIsRunning(false);
+  };
+
   const handleExportTxt = () => {
     const lines = items.map(item => {
       const brandTag = item.brand === "GENERIC" ? "[GENERIC]" : `[${item.brand}]`;
@@ -636,15 +707,28 @@ export default function UpdateTab() {
 
       <div ref={controlsRef} className="flex flex-wrap items-center gap-3">
         {!isRunning ? (
-          <Button
-            onClick={() => void handleStart()}
-            disabled={!inputText.trim() || isRunning}
-            className="gap-2 shadow-sm"
-            data-testid="button-start-update"
-          >
-            <Play className="w-4 h-4" />
-            Check &amp; Update Links
-          </Button>
+          <>
+            <Button
+              onClick={() => void handleStart()}
+              disabled={!inputText.trim() || isRunning}
+              className="gap-2 shadow-sm"
+              data-testid="button-start-update"
+            >
+              <Play className="w-4 h-4" />
+              Check &amp; Update Links
+            </Button>
+            {isStopped && (
+              <Button
+                onClick={() => void handleResumeAfterStop()}
+                variant="outline"
+                className="gap-2 border-primary/40 text-primary"
+                data-testid="button-resume-after-stop"
+              >
+                <PlayCircle className="w-4 h-4" />
+                Resume from {processed}
+              </Button>
+            )}
+          </>
         ) : (
           <>
             <Button
@@ -1059,6 +1143,16 @@ export default function UpdateTab() {
                     <RefreshCw className="w-4 h-4" strokeWidth={2.5} />
                   </Button>
                 </div>
+              )}
+              {isStopped && (
+                <Button
+                  onClick={() => void handleResumeAfterStop()}
+                  size="sm"
+                  className="border-0 gap-2 w-full justify-center bg-primary/10 hover:bg-primary/20 text-primary"
+                >
+                  <PlayCircle className="w-4 h-4" />
+                  Resume from {processed}
+                </Button>
               )}
               {(isDone || isStopped) && (
                 <Button
