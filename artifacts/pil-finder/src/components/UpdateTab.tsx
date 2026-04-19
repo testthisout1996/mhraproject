@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Upload, ClipboardPaste, Play, Download, CheckCircle, XCircle, Loader2, FileText, RefreshCw, Copy, Check, ArrowUp, ChevronUp, ChevronDown, PauseCircle, PlayCircle } from "lucide-react";
+import { Upload, ClipboardPaste, Play, Pause, Square, Download, CheckCircle, XCircle, Loader2, FileText, RefreshCw, Copy, Check, ArrowUp, ChevronUp, ChevronDown, PauseCircle, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -960,27 +960,27 @@ export default function UpdateTab() {
                 <Button
                   onClick={handleStop}
                   size="sm"
-                  className="gap-2 w-full justify-start bg-destructive hover:bg-destructive/90 text-white"
+                  className="gap-2 w-full justify-center bg-destructive hover:bg-destructive/90 text-white"
                 >
-                  <XCircle className="w-3.5 h-3.5" />
+                  <Square className="w-4 h-4" />
                   Stop
                 </Button>
                 {!isPaused ? (
                   <Button
                     onClick={handlePause}
                     size="sm"
-                    className="gap-2 w-full justify-start"
+                    className="gap-2 w-full justify-center"
                   >
-                    <PauseCircle className="w-3.5 h-3.5" />
+                    <Pause className="w-4 h-4" />
                     Pause
                   </Button>
                 ) : (
                   <Button
                     onClick={handleResume}
                     size="sm"
-                    className="gap-2 w-full justify-start"
+                    className="gap-2 w-full justify-center bg-green-600 hover:bg-green-700 text-white"
                   >
-                    <PlayCircle className="w-3.5 h-3.5" />
+                    <Play className="w-4 h-4" />
                     Resume
                   </Button>
                 )}
@@ -995,19 +995,19 @@ export default function UpdateTab() {
                 <Button
                   onClick={() => navigateToNotFound(hasPrevNotFound ? notFoundNavIdx - 1 : 0)}
                   size="sm"
-                  className="gap-2 w-full justify-start"
+                  className="gap-2 w-full justify-center"
                   disabled={!hasPrevNotFound}
                 >
-                  <ChevronUp className="w-3.5 h-3.5" />
+                  <ChevronUp className="w-4 h-4" />
                   Prev not found
                 </Button>
                 <Button
                   onClick={() => navigateToNotFound(hasNextNotFound ? notFoundNavIdx + 1 : notFoundNavIdx)}
                   size="sm"
-                  className="gap-2 w-full justify-start"
+                  className="gap-2 w-full justify-center"
                   disabled={!hasNextNotFound}
                 >
-                  <ChevronDown className="w-3.5 h-3.5" />
+                  <ChevronDown className="w-4 h-4" />
                   Next not found
                 </Button>
               </>
@@ -1016,9 +1016,9 @@ export default function UpdateTab() {
             <Button
               onClick={scrollToTop}
               size="sm"
-              className="gap-2 w-full justify-start"
+              className="gap-2 w-full justify-center bg-teal-600 hover:bg-teal-700 text-white"
             >
-              <ArrowUp className="w-3.5 h-3.5" />
+              <ArrowUp className="w-4 h-4" />
               Back to top
             </Button>
           </div>
