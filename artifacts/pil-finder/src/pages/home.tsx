@@ -329,9 +329,9 @@ export default function Home() {
     <div className="min-h-[100dvh] flex flex-col bg-background">
       {/* Sticky Navbar */}
       <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-sm">
-        <div className="container max-w-5xl mx-auto px-4">
-          {/* Brand row */}
-          <div className="flex items-center gap-3 pt-3 pb-2">
+        <div className="container max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+          {/* Brand */}
+          <div className="flex items-center gap-3 shrink-0">
             <div className="bg-white/10 p-1.5 rounded-md">
               <ShieldCheck className="w-4 h-4 text-white" />
             </div>
@@ -340,49 +340,43 @@ export default function Home() {
               <p className="text-primary-foreground/70 text-xs leading-tight">UK Medicines &amp; Healthcare products Regulatory Agency</p>
             </div>
           </div>
-          {/* Tab row */}
-          <nav className="flex gap-0 -mb-px" aria-label="Tabs">
+          {/* Tab buttons */}
+          <nav className="flex items-center gap-2" aria-label="Tabs">
             <button
               onClick={() => setActiveTab("search")}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                 activeTab === "search"
-                  ? "border-white text-white"
-                  : "border-transparent text-primary-foreground/60 hover:text-primary-foreground hover:border-white/40"
+                  ? "bg-white text-primary shadow-sm"
+                  : "bg-white/15 text-white hover:bg-white/25"
               }`}
               data-testid="tab-search"
             >
-              <span className="flex items-center gap-2">
-                <Search className="w-4 h-4" />
-                Search
-              </span>
+              <Search className="w-3.5 h-3.5" />
+              Search
             </button>
             <button
               onClick={() => setActiveTab("update")}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                 activeTab === "update"
-                  ? "border-white text-white"
-                  : "border-transparent text-primary-foreground/60 hover:text-primary-foreground hover:border-white/40"
+                  ? "bg-white text-primary shadow-sm"
+                  : "bg-white/15 text-white hover:bg-white/25"
               }`}
               data-testid="tab-update"
             >
-              <span className="flex items-center gap-2">
-                <RefreshCw className="w-4 h-4" />
-                Update
-              </span>
+              <RefreshCw className="w-3.5 h-3.5" />
+              Update
             </button>
             <button
               onClick={() => setActiveTab("status")}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                 activeTab === "status"
-                  ? "border-white text-white"
-                  : "border-transparent text-primary-foreground/60 hover:text-primary-foreground hover:border-white/40"
+                  ? "bg-white text-primary shadow-sm"
+                  : "bg-white/15 text-white hover:bg-white/25"
               }`}
               data-testid="tab-status"
             >
-              <span className="flex items-center gap-2">
-                <ServerCog className="w-4 h-4" />
-                Service Status
-              </span>
+              <ServerCog className="w-3.5 h-3.5" />
+              Service Status
             </button>
           </nav>
         </div>
