@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Upload, ClipboardPaste, Play, Pause, Square, Download, CheckCircle, XCircle, Loader2, FileText, RefreshCw, Copy, Check, ArrowUp, ChevronUp, ChevronDown, PauseCircle, PlayCircle } from "lucide-react";
+import { Upload, ClipboardPaste, Play, Pause, X, Download, CheckCircle, XCircle, Loader2, FileText, RefreshCw, Copy, Check, ArrowUp, ChevronUp, ChevronDown, PauseCircle, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -963,7 +963,7 @@ export default function UpdateTab() {
                   title="Stop"
                   className="border-0 bg-destructive hover:bg-destructive/90 text-white h-8 w-8 shrink-0"
                 >
-                  <Square className="w-4 h-4" />
+                  <X className="w-4 h-4" />
                 </Button>
                 {!isPaused ? (
                   <Button
