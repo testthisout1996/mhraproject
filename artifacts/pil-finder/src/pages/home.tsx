@@ -329,7 +329,7 @@ export default function Home() {
     <div className="min-h-[100dvh] flex flex-col bg-background">
       {/* Sticky Navbar */}
       <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-sm">
-        <div className="container max-w-5xl mx-auto px-4 h-[100px] flex items-center justify-between gap-4">
+        <div className="container max-w-5xl mx-auto px-4 h-[75px] flex items-center justify-between gap-4">
           {/* Brand */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="bg-white/10 p-1.5 rounded-md">
