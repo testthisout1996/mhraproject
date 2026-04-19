@@ -840,7 +840,7 @@ export default function UpdateTab() {
                     <tr
                       key={item.id}
                       id={`med-row-${idx}`}
-                      className={`transition-colors ${isNotFound ? "bg-red-50 hover:bg-red-100" : "hover:bg-muted/20"}`}
+                      className={`transition-colors ${isNotFound ? "bg-red-100 hover:bg-red-200" : "hover:bg-muted/20"}`}
                       data-testid={`row-medication-${idx}`}
                     >
                       <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
@@ -933,14 +933,34 @@ export default function UpdateTab() {
 
       {showFloating && (
         <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 items-end">
-          <div className="bg-background border border-border rounded-xl shadow-lg p-3 flex flex-col gap-2 min-w-[160px]">
+          <div className="bg-background border border-border rounded-xl shadow-lg p-3 flex flex-col gap-2 min-w-[180px]">
+
+            {isRunning && (
+              <div className="flex items-center gap-2 px-1 pb-2 border-b border-border mb-1">
+                {isPaused ? (
+                  <PauseCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                ) : (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
+                )}
+                <span className="text-xs font-semibold text-foreground">
+                  {isPaused ? `Paused at ${processed + 1} of ${total}` : `Checking ${processed + 1} of ${total}`}
+                </span>
+              </div>
+            )}
+
+            {isDone && (
+              <div className="flex items-center gap-2 px-1 pb-2 border-b border-border mb-1">
+                <CheckCircle className="w-3.5 h-3.5 text-green-600 shrink-0" />
+                <span className="text-xs font-semibold text-foreground">Complete</span>
+              </div>
+            )}
+
             {isRunning && (
               <>
                 <Button
                   onClick={handleStop}
-                  variant="outline"
                   size="sm"
-                  className="gap-2 w-full justify-start border-destructive/40 text-destructive hover:bg-destructive/5"
+                  className="gap-2 w-full justify-start bg-destructive hover:bg-destructive/90 text-white"
                 >
                   <XCircle className="w-3.5 h-3.5" />
                   Stop
@@ -948,7 +968,6 @@ export default function UpdateTab() {
                 {!isPaused ? (
                   <Button
                     onClick={handlePause}
-                    variant="outline"
                     size="sm"
                     className="gap-2 w-full justify-start"
                   >
@@ -958,9 +977,8 @@ export default function UpdateTab() {
                 ) : (
                   <Button
                     onClick={handleResume}
-                    variant="outline"
                     size="sm"
-                    className="gap-2 w-full justify-start border-primary/40 text-primary"
+                    className="gap-2 w-full justify-start"
                   >
                     <PlayCircle className="w-3.5 h-3.5" />
                     Resume
@@ -971,14 +989,13 @@ export default function UpdateTab() {
 
             {(isRunning || isDone) && notFoundIndices.length > 0 && (
               <>
-                <div className="text-xs text-destructive font-semibold px-1 pb-1 border-b border-border mb-1">
-                  {notFoundIndices.length} not found
+                <div className="text-xs text-destructive font-semibold px-1 pt-1">
+                  {notFoundIndices.length} not found — {notFoundNavIdx + 1} / {notFoundIndices.length}
                 </div>
                 <Button
                   onClick={() => navigateToNotFound(hasPrevNotFound ? notFoundNavIdx - 1 : 0)}
-                  variant="outline"
                   size="sm"
-                  className="gap-2 w-full justify-start border-destructive/30 text-destructive hover:bg-destructive/5"
+                  className="gap-2 w-full justify-start"
                   disabled={!hasPrevNotFound}
                 >
                   <ChevronUp className="w-3.5 h-3.5" />
@@ -986,23 +1003,18 @@ export default function UpdateTab() {
                 </Button>
                 <Button
                   onClick={() => navigateToNotFound(hasNextNotFound ? notFoundNavIdx + 1 : notFoundNavIdx)}
-                  variant="outline"
                   size="sm"
-                  className="gap-2 w-full justify-start border-destructive/30 text-destructive hover:bg-destructive/5"
+                  className="gap-2 w-full justify-start"
                   disabled={!hasNextNotFound}
                 >
                   <ChevronDown className="w-3.5 h-3.5" />
                   Next not found
                 </Button>
-                <div className="text-xs text-center text-muted-foreground">
-                  {notFoundNavIdx + 1} / {notFoundIndices.length}
-                </div>
               </>
             )}
 
             <Button
               onClick={scrollToTop}
-              variant="outline"
               size="sm"
               className="gap-2 w-full justify-start"
             >
