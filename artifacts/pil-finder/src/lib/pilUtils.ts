@@ -44,15 +44,35 @@ export function classifyPilResult(result: PilResult, brand?: string): PilClassif
   return "unknown";
 }
 
+/**
+ * Collapse digit-grouping separators that MHRA frequently uses inside numbers
+ * (European-style thin space or comma between thousands), e.g.
+ *   "1 000"    -> "1000"
+ *   "25 000"   -> "25000"
+ *   "1,000,000" -> "1000000"
+ * Applied repeatedly so multi-group numbers like "1 000 000" collapse fully.
+ */
+function normalizeNumberFormatting(s: string): string {
+  let prev: string;
+  let curr = s;
+  do {
+    prev = curr;
+    curr = curr.replace(/(\d)[\s,](\d{3})(?!\d)/g, "$1$2");
+  } while (curr !== prev);
+  return curr;
+}
+
 function extractSearchNumbers(searchTerm: string): string[] {
-  const matches = searchTerm.match(/\d+(?:\.\d+)?/g) ?? [];
+  const normalized = normalizeNumberFormatting(searchTerm);
+  const matches = normalized.match(/\d+(?:\.\d+)?/g) ?? [];
   return [...new Set(matches)];
 }
 
 function numberMatchesProduct(num: string, productName: string): boolean {
+  const normalizedProduct = normalizeNumberFormatting(productName);
   const escaped = num.replace(".", "\\.");
   const regex = new RegExp(`(?<![0-9])${escaped}(?![0-9])`);
-  return regex.test(productName);
+  return regex.test(normalizedProduct);
 }
 
 function allNumbersMatchProduct(numbers: string[], productName: string): boolean {
