@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { parseNameAndBrand, buildSearchQuery, pickBestResult } from "@/lib/pilUtils";
+import { parseNameAndBrand, buildSearchQuery, pickBestResult, extractParenthetical } from "@/lib/pilUtils";
 
 interface MedicationItem {
   id: string;
@@ -267,6 +267,24 @@ async function fetchResults(query: string, pageSize = 10): Promise<SearchApiResu
   return data.results;
 }
 
+async function tryParentheticalFallback(
+  searchTerm: string,
+): Promise<{ best: SearchApiResult["results"][0] | undefined; all: SearchApiResult["results"] }> {
+  // When the user-typed drug or brand name is misspelled, MHRA's search won't
+  // surface the right product. As a last resort, look for a parenthetical
+  // active-ingredient name (e.g. "(Sodium Acid Phosphate)") and search using
+  // that instead, while still applying formulation/dose hints from the
+  // original query.
+  const paren = extractParenthetical(searchTerm);
+  if (!paren) return { best: undefined, all: [] };
+  const altResults = await fetchResults(paren, 15);
+  const altBest = pickBestResult(altResults, "GENERIC", searchTerm, {
+    coreWordsOverride: paren,
+    softNumbers: true,
+  });
+  return { best: altBest, all: altResults };
+}
+
 async function searchForPil(
   searchTerm: string,
   brand: string,
@@ -274,7 +292,13 @@ async function searchForPil(
   if (brand === "GENERIC") {
     const results = await fetchResults(searchTerm, 15);
     const best = pickBestResult(results, brand, searchTerm);
-    return { best, all: results, defaultedToGeneric: false };
+    if (best) return { best, all: results, defaultedToGeneric: false };
+
+    // Parenthetical fallback for typos (e.g. "Phoshate Sandoz (Sodium Acid Phosphate) ...")
+    const fb = await tryParentheticalFallback(searchTerm);
+    if (fb.best) return { best: fb.best, all: fb.all, defaultedToGeneric: false };
+
+    return { best: undefined, all: results, defaultedToGeneric: false };
   }
 
   const brandDoseQuery = buildSearchQuery(searchTerm, brand);
@@ -305,7 +329,13 @@ async function searchForPil(
   // Brand-specific PIL not found — fall back to a generic PIL for the same drug.
   const genericResults = await fetchResults(searchTerm, 15);
   const genericBest = pickBestResult(genericResults, "GENERIC", searchTerm);
-  return { best: genericBest, all: genericResults, defaultedToGeneric: !!genericBest };
+  if (genericBest) return { best: genericBest, all: genericResults, defaultedToGeneric: true };
+
+  // Last-resort: typo-tolerant fallback using parenthetical content.
+  const fb = await tryParentheticalFallback(searchTerm);
+  if (fb.best) return { best: fb.best, all: fb.all, defaultedToGeneric: true };
+
+  return { best: undefined, all: genericResults, defaultedToGeneric: false };
 }
 
 function CopyButton({ text, label }: { text: string; label?: string }) {
