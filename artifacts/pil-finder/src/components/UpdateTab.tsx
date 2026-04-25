@@ -349,6 +349,7 @@ export default function UpdateTab() {
   const [controlsVisible, setControlsVisible] = useState(true);
   const [notFoundNavIdx, setNotFoundNavIdx] = useState(0);
   const [panelMinimized, setPanelMinimized] = useState(false);
+  const [panelDismissed, setPanelDismissed] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => { setIsMounted(true); }, []);
@@ -409,6 +410,7 @@ export default function UpdateTab() {
     setIsRunning(true);
     setProcessed(0);
     setNotFoundNavIdx(0);
+    setPanelDismissed(false);
     abortRef.current = false;
     isPausedRef.current = false;
     setIsPaused(false);
@@ -496,6 +498,7 @@ export default function UpdateTab() {
     const currentItems = items;
 
     setIsRunning(true);
+    setPanelDismissed(false);
     abortRef.current = false;
     isPausedRef.current = false;
     setIsPaused(false);
@@ -623,7 +626,7 @@ export default function UpdateTab() {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   const isStopped = !isRunning && items.length > 0 && !isDone;
-  const showFloating = !controlsVisible && items.length > 0;
+  const showFloating = !controlsVisible && items.length > 0 && !panelDismissed;
 
   return (
     <div className="space-y-6">
@@ -926,7 +929,7 @@ export default function UpdateTab() {
                   <col className="w-10" />
                   {inputFormat === "js" && <col className="w-20" />}
                   <col className="w-72" />
-                  <col className="w-24" />
+                  <col className="w-32" />
                   <col className="w-28" />
                   <col />
                 </colgroup>
@@ -965,7 +968,7 @@ export default function UpdateTab() {
                       <td className="px-4 py-3">
                         <Badge
                           variant="outline"
-                          className={`text-xs ${item.brand === "GENERIC" ? "border-blue-200 text-blue-700 bg-blue-50" : "border-purple-200 text-purple-700 bg-purple-50"}`}
+                          className={`text-xs whitespace-normal break-words inline-block max-w-full ${item.brand === "GENERIC" ? "border-blue-200 text-blue-700 bg-blue-50" : "border-purple-200 text-purple-700 bg-purple-50"}`}
                         >
                           {item.brand === "GENERIC" ? "Generic" : item.brand}
                         </Badge>
@@ -1095,13 +1098,22 @@ export default function UpdateTab() {
                         : "Complete"}
                   </span>
                 </div>
-                <button
-                  onClick={() => setPanelMinimized(true)}
-                  title="Minimise panel"
-                  className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
-                >
-                  <ChevronDown className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => setPanelMinimized(true)}
+                    title="Minimise panel"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setPanelDismissed(true)}
+                    title="Dismiss panel"
+                    className="text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               {/* Stop / Pause / Resume / Re-run */}
